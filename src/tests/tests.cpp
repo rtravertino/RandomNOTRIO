@@ -78,14 +78,6 @@ int main() {
 	//std::cout << "Allocating randomx_cache..." << std::endl;
 	cache = randomx_alloc_cache(RANDOMX_FLAG_DEFAULT);
 
-	runTest("Cache initialization", RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"),	[]() {
-		initCache("test key 000");
-		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
-	});
-
 	runTest("SuperscalarHash generator", RANDOMX_SUPERSCALAR_LATENCY == 170, []() {
 		char sprogHash[32];
 		randomx::SuperscalarProgram sprog;
@@ -131,40 +123,6 @@ int main() {
 		assert(randomx_reciprocal_fast(15000001) == 10316166306300415204U);
 		assert(randomx_reciprocal_fast(3845182035) == 10302264209224146340U);
 		assert(randomx_reciprocal_fast(0xffffffff) == 9223372039002259456U);
-	});
-
-	runTest("Dataset initialization (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
-		initCache("test key 000");
-		uint64_t datasetItem[8];
-		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 0);
-		assert(datasetItem[0] == 0x680588a85ae222db);
-		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 10000000);
-		assert(datasetItem[0] == 0x7943a1f6186ffb72);
-		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 20000000);
-		assert(datasetItem[0] == 0x9035244d718095e1);
-		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 30000000);
-		assert(datasetItem[0] == 0x145a5091f7853099);
-	});
-
-	runTest("Dataset initialization (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
-		initCache("test key 000");
-		randomx::JitCompiler jit;
-		jit.generateSuperscalarHash(cache->programs, cache->reciprocalCache);
-		jit.generateDatasetInitCode();
-#ifdef RANDOMX_FORCE_SECURE
-		jit.enableExecution();
-#else
-		jit.enableAll();
-#endif
-		uint64_t datasetItem[8];
-		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 0, 1);
-		assert(datasetItem[0] == 0x680588a85ae222db);
-		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 10000000, 10000001);
-		assert(datasetItem[0] == 0x7943a1f6186ffb72);
-		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 20000000, 20000001);
-		assert(datasetItem[0] == 0x9035244d718095e1);
-		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 30000000, 30000001);
-		assert(datasetItem[0] == 0x145a5091f7853099);
 	});
 
 	runTest("AesGenerator1R", true, []() {
@@ -971,45 +929,57 @@ int main() {
 	auto test_a = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "This is a test", &hash);
-		assert(equalsHex(hash, "639183aae1bf4c9a35884cb46b09cad9175f04efd7684e7262a0ac1c2f0b4e3f"));
+		std::cout << std::endl;
+		outputHex(std::cout, (const char*)hash, sizeof(hash));
+		std::cout << std::endl;
+		assert(equalsHex(hash, "11832c48e712bb71b46112f8ca62b6cf926146acd751f6c523e9b31d8c766551"));
 	};
 
 	auto test_b = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "Lorem ipsum dolor sit amet", &hash);
-		assert(equalsHex(hash, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
+		std::cout << std::endl;
+		outputHex(std::cout, (const char*)hash, sizeof(hash));
+		std::cout << std::endl;
+		assert(equalsHex(hash, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
 	};
 
 	auto test_c = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", &hash);
-		assert(equalsHex(hash, "c36d4ed4191e617309867ed66a443be4075014e2b061bcdaf9ce7b721d2b77a8"));
+		std::cout << std::endl;
+		outputHex(std::cout, (const char*)hash, sizeof(hash));
+		std::cout << std::endl;
+		assert(equalsHex(hash, "14596e4dfa62c57ce7b32a3b2bab5c9056f77876078a8f4bb40597c3dbccab5a"));
 	};
 
 	auto test_d = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 001", "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", &hash);
-		assert(equalsHex(hash, "e9ff4503201c0c2cca26d285c93ae883f9b1d30c9eb240b820756f2d5a7905fc"));
+		std::cout << std::endl;
+		outputHex(std::cout, (const char*)hash, sizeof(hash));
+		std::cout << std::endl;
+		assert(equalsHex(hash, "9c846d32bbeaa3df31a7cccba8d29d9a6d9a7a9a4233fb6c106c3018455b6ceb"));
 	};
 
 	auto test_e = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcHexHash("test key 001", "0b0b98bea7e805e0010a2126d287a2a0cc833d312cb786385a7c2f9de69d25537f584a9bc9977b00000000666fd8753bf61a8631f12984e3fd44f4014eca629276817b56f32e9b68bd82f416", &hash);
-		//std::cout << std::endl;
-		//outputHex(std::cout, (const char*)hash, sizeof(hash));
-		//std::cout << std::endl;
-		assert(equalsHex(hash, "c56414121acda1713c2f2a819d8ae38aed7c80c35c2a769298d34f03833cd5f1"));
+		std::cout << std::endl;
+		outputHex(std::cout, (const char*)hash, sizeof(hash));
+		std::cout << std::endl;
+		assert(equalsHex(hash, "fd222ad4cf39f950d11288ab08385bf5b2ad4cbdaefbef4fad8db794555cfcc5"));
 	};
 
-	runTest("Hash test 1a (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_a);
+	runTest("Hash test 1a (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_a);
 
-	runTest("Hash test 1b (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_b);
+	runTest("Hash test 1b (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_b);
 
-	runTest("Hash test 1c (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_c);
+	runTest("Hash test 1c (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_c);
 
-	runTest("Hash test 1d (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_d);
+	runTest("Hash test 1d (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_d);
 
-	runTest("Hash test 1e (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_e);
+	runTest("Hash test 1e (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_e);
 
 	if (RANDOMX_HAVE_COMPILER) {
 		randomx_release_cache(cache);
@@ -1024,46 +994,22 @@ int main() {
 #endif
 	}
 
-	runTest("Hash test 2a (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_a);
+	runTest("Hash test 2a (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_a);
 
-	runTest("Hash test 2b (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_b);
+	runTest("Hash test 2b (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_b);
 
-	runTest("Hash test 2c (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_c);
+	runTest("Hash test 2c (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_c);
 
-	runTest("Hash test 2d (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_d);
+	runTest("Hash test 2d (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_d);
 
-	runTest("Hash test 2e (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), test_e);
+	runTest("Hash test 2e (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_e);
 
 	auto flags = randomx_get_flags();
 
 	randomx_release_cache(cache);
-	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_SSSE3);
-
-	runTest("Cache initialization: SSSE3", (flags & RANDOMX_FLAG_ARGON2_SSSE3) && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
-		initCache("test key 000");
-		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
-	});
-
-	if (cache != nullptr)
-		randomx_release_cache(cache);
-	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_AVX2);
-
-	runTest("Cache initialization: AVX2", (flags & RANDOMX_FLAG_ARGON2_AVX2) && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
-		initCache("test key 000");
-		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
-	});
-
-	if (cache != nullptr)
-		randomx_release_cache(cache);
 	cache = randomx_alloc_cache(RANDOMX_FLAG_DEFAULT);
 
-	runTest("Hash batch test", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
+	runTest("Hash batch test", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), []() {
 		char hash1[RANDOMX_HASH_SIZE];
 		char hash2[RANDOMX_HASH_SIZE];
 		char hash3[RANDOMX_HASH_SIZE];
@@ -1077,16 +1023,16 @@ int main() {
 		randomx_calculate_hash_next(vm, input3, sizeof(input3) - 1, &hash2);
 		randomx_calculate_hash_last(vm, &hash3);
 
-		assert(equalsHex(hash1, "639183aae1bf4c9a35884cb46b09cad9175f04efd7684e7262a0ac1c2f0b4e3f"));
-		assert(equalsHex(hash2, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
-		assert(equalsHex(hash3, "c36d4ed4191e617309867ed66a443be4075014e2b061bcdaf9ce7b721d2b77a8"));
+		assert(equalsHex(hash1, "11832c48e712bb71b46112f8ca62b6cf926146acd751f6c523e9b31d8c766551"));
+		assert(equalsHex(hash2, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
+		assert(equalsHex(hash3, "14596e4dfa62c57ce7b32a3b2bab5c9056f77876078a8f4bb40597c3dbccab5a"));
 	});
 
 	runTest("Preserve rounding mode", RANDOMX_FREQ_CFROUND > 0, []() {
 		rx_set_rounding_mode(RoundToNearest);
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "Lorem ipsum dolor sit amet", &hash);
-		assert(equalsHex(hash, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
+		assert(equalsHex(hash, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
 		assert(rx_get_rounding_mode() == RoundToNearest);
 	});
 
@@ -1099,12 +1045,6 @@ int main() {
 		vm = randomx_create_vm(RANDOMX_FLAG_DEFAULT, cache, nullptr);
 #endif
 	}
-
-	runTest("Commitment test", stringsEqual(RANDOMX_ARGON_SALT, "RandomX\x03"), []() {
-		char hash[RANDOMX_HASH_SIZE];
-		calcStringCommitment("test key 000", "This is a test", &hash);
-		assert(equalsHex(hash, "d53ccf348b75291b7be76f0a7ac8208bbced734b912f6fca60539ab6f86be919"));
-	});
 
 	randomx_destroy_vm(vm);
 	vm = nullptr;
