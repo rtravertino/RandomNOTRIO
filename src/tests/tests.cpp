@@ -932,7 +932,7 @@ int main() {
 		std::cout << std::endl;
 		outputHex(std::cout, (const char*)hash, sizeof(hash));
 		std::cout << std::endl;
-		assert(equalsHex(hash, "11832c48e712bb71b46112f8ca62b6cf926146acd751f6c523e9b31d8c766551"));
+		assert(equalsHex(hash, "7266bdd4668d0718f9f8817af9a251a7b8ed49468a00717c74584ba2ac7e3e09"));
 	};
 
 	auto test_b = [&] {
@@ -941,7 +941,7 @@ int main() {
 		std::cout << std::endl;
 		outputHex(std::cout, (const char*)hash, sizeof(hash));
 		std::cout << std::endl;
-		assert(equalsHex(hash, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
+		assert(equalsHex(hash, "bcdc7bce23f615e00d4369bec3c05cd7add07fc25c49529e7671582133d025f0"));
 	};
 
 	auto test_c = [&] {
@@ -950,7 +950,7 @@ int main() {
 		std::cout << std::endl;
 		outputHex(std::cout, (const char*)hash, sizeof(hash));
 		std::cout << std::endl;
-		assert(equalsHex(hash, "14596e4dfa62c57ce7b32a3b2bab5c9056f77876078a8f4bb40597c3dbccab5a"));
+		assert(equalsHex(hash, "c64944ed33e4abd159fb8692c81a923bbe7a7c346fd39349f76fb53fa284bc87"));
 	};
 
 	auto test_d = [&] {
@@ -959,7 +959,7 @@ int main() {
 		std::cout << std::endl;
 		outputHex(std::cout, (const char*)hash, sizeof(hash));
 		std::cout << std::endl;
-		assert(equalsHex(hash, "9c846d32bbeaa3df31a7cccba8d29d9a6d9a7a9a4233fb6c106c3018455b6ceb"));
+		assert(equalsHex(hash, "6b339ad028e772e91290df111e61fa82af0eef1dfc53dfbcb04a98945b01dca6"));
 	};
 
 	auto test_e = [&] {
@@ -968,7 +968,7 @@ int main() {
 		std::cout << std::endl;
 		outputHex(std::cout, (const char*)hash, sizeof(hash));
 		std::cout << std::endl;
-		assert(equalsHex(hash, "fd222ad4cf39f950d11288ab08385bf5b2ad4cbdaefbef4fad8db794555cfcc5"));
+		assert(equalsHex(hash, "192a0ba57411bff3bad53f6092985360c3b5c05d162c88c4f196a8398711a043"));
 	};
 
 	runTest("Hash test 1a (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomNOTRIO\x03"), test_a);
@@ -1023,16 +1023,16 @@ int main() {
 		randomx_calculate_hash_next(vm, input3, sizeof(input3) - 1, &hash2);
 		randomx_calculate_hash_last(vm, &hash3);
 
-		assert(equalsHex(hash1, "11832c48e712bb71b46112f8ca62b6cf926146acd751f6c523e9b31d8c766551"));
-		assert(equalsHex(hash2, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
-		assert(equalsHex(hash3, "14596e4dfa62c57ce7b32a3b2bab5c9056f77876078a8f4bb40597c3dbccab5a"));
+		assert(equalsHex(hash1, "7266bdd4668d0718f9f8817af9a251a7b8ed49468a00717c74584ba2ac7e3e09"));
+		assert(equalsHex(hash2, "bcdc7bce23f615e00d4369bec3c05cd7add07fc25c49529e7671582133d025f0"));
+		assert(equalsHex(hash3, "c64944ed33e4abd159fb8692c81a923bbe7a7c346fd39349f76fb53fa284bc87"));
 	});
 
 	runTest("Preserve rounding mode", RANDOMX_FREQ_CFROUND > 0, []() {
 		rx_set_rounding_mode(RoundToNearest);
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "Lorem ipsum dolor sit amet", &hash);
-		assert(equalsHex(hash, "f78a38ecbb737b68aafc38060dad3aa4251576d0d1bfe8dc851b39c6ace2d882"));
+		assert(equalsHex(hash, "bcdc7bce23f615e00d4369bec3c05cd7add07fc25c49529e7671582133d025f0"));
 		assert(rx_get_rounding_mode() == RoundToNearest);
 	});
 
